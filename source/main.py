@@ -2,9 +2,12 @@ import tkinter as tk
 from tkinter import ttk, messagebox, scrolledtext
 import hashlib
 import binascii
-import os
+import webbrowser
 import secrets
 
+def open_ti_documentation():
+    """打开TI文档链接"""
+    webbrowser.open("https://www.ti.com/lit/an/slua389a/slua389a.pdf")
 
 def calculate_double_sha1():
     # 获取输入
@@ -158,27 +161,39 @@ challenge_entry.insert(0, "E3A9AC282BA5F63EDF904EA561CCA38EBDF26AE3")  # 默认�
 button_frame = ttk.Frame(root)
 button_frame.pack(padx=10, pady=10, fill=tk.X)
 
+# 左侧按钮组
+left_btn_frame = ttk.Frame(button_frame)
+left_btn_frame.pack(side=tk.LEFT, fill=tk.X, expand=True)
+
+# 右侧按钮组
+right_btn_frame = ttk.Frame(button_frame)
+right_btn_frame.pack(side=tk.RIGHT)
+
 # 计算按钮
-calculate_btn = ttk.Button(button_frame, text="计算双重SHA1", command=calculate_double_sha1)
+calculate_btn = ttk.Button(left_btn_frame, text="计算双重SHA1", command=calculate_double_sha1)
 calculate_btn.pack(side=tk.LEFT, padx=5)
 
 # 生成随机Challenge按钮
-random_btn = ttk.Button(button_frame, text="生成随机Challenge", command=generate_random_challenge)
+random_btn = ttk.Button(left_btn_frame, text="生成随机Challenge", command=generate_random_challenge)
 random_btn.pack(side=tk.LEFT, padx=5)
 
 # 清空按钮
-clear_btn = ttk.Button(button_frame, text="重置默认", command=clear_all)
+clear_btn = ttk.Button(left_btn_frame, text="重置默认", command=clear_all)
 clear_btn.pack(side=tk.LEFT, padx=5)
 
 # 复制按钮
-copy_btn = ttk.Button(button_frame, text="复制最终Digest", command=copy_final_to_clipboard)
-copy_btn.pack(side=tk.RIGHT, padx=5)
+copy_btn = ttk.Button(left_btn_frame, text="复制最终Digest", command=copy_final_to_clipboard)
+copy_btn.pack(side=tk.LEFT, padx=5)
+
+# 文档链接按钮 - 放在重置按钮右侧
+doc_btn = ttk.Button(right_btn_frame, text="文档", command=open_ti_documentation)
+doc_btn.pack(side=tk.RIGHT, padx=1)
 
 # 结果框架
 result_frame = ttk.LabelFrame(root, text="双重SHA1计算结果", padding=(10, 5))
 result_frame.pack(padx=10, pady=5, fill=tk.BOTH, expand=True)
 
-# 结果文本框 - 使用更大的文本框显示两个步骤的结果
+# 结果文本框
 result_text = scrolledtext.ScrolledText(
     result_frame,
     height=1,
@@ -192,7 +207,7 @@ result_text.config(state=tk.DISABLED)  # 初始设置为只读
 status_bar = ttk.Label(root, text="就绪 - 输入参数后点击'计算双重SHA1'", relief=tk.SUNKEN, anchor=tk.W)
 status_bar.pack(side=tk.BOTTOM, fill=tk.X)
 
-# 算法说明
+# 算法说明we'm
 algorithm_frame = ttk.Frame(root)
 algorithm_frame.pack(side=tk.BOTTOM, fill=tk.X, padx=10, pady=(0, 5))
 
