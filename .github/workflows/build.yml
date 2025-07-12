@@ -11,6 +11,7 @@ jobs:
     strategy:
       matrix:
         os: [windows-latest, ubuntu-latest, macos-latest]
+      fail-fast: false  # 允许单个平台失败不影响其他平台
     
     steps:
     - name: Checkout code
@@ -21,14 +22,31 @@ jobs:
       with:
         python-version: '3.10'
 
-    - name: Run build script
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt pyinstaller
+
+    - name: Build executable
       shell: bash
       run: |
-        chmod +x build_script.sh
-        ./build_script.sh
+        # 根据平台构建
+        if [[ "$RUNNER_OS" == "Windows" ]]; then
+          pyinstaller --onefile --name myapp-windows src/main.py
+          cd dist
+          zip -r myapp-windows.zip myapp-windows.exe
+        elif [[ "$RUNNER_OS" == "macOS" ]]; then
+          pyinstaller --onefile --name myapp-macos src/main.py
+          cd dist
+          zip -r myapp-macos.zip myapp-macos
+        else  # Linux
+          pyinstaller --onefile --name myapp-linux src/main.py
+          cd dist
+          zip -r myapp-linux.zip myapp-linux
+        fi
 
     - name: Upload artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4  # 使用最新v4版本
       with:
         name: ${{ runner.os }}-package
         path: dist/*.zip
@@ -36,12 +54,15 @@ jobs:
   release:
     runs-on: ubuntu-latest
     needs: build
+    if: success() || failure()  # 即使部分构建失败也创建发布
     
     steps:
-    - name: Download all artifacts
-      uses: actions/download-artifact@v3
+    - name: Download artifacts
+      uses: actions/download-artifact@v4  # 使用最新v4版本
       with:
         path: artifacts
+        pattern: '*package'  # 下载所有构建产物
+        merge-multiple: true  # 合并所有artifact
 
     - name: Create Release
       uses: softprops/action-gh-release@v1
@@ -49,4 +70,4 @@ jobs:
         tag_name: ${{ github.ref }}
         name: Release ${{ github.ref_name }}
         files: |
-          artifacts/*/*.zip
+          artifacts/*.zip
