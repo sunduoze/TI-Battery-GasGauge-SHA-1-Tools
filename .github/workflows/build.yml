@@ -18,7 +18,7 @@ jobs: # 执行的工作
       - name: Set up Python
         uses: actions/setup-python@v3 # 用于设置 Python 环境，它允许你指定要在工作环境中使用的 Python 版本
         with:
-          python-version: '3.10'  # 选择要用的Python版本
+          python-version: '3.11'  # 选择要用的Python版本
  
       - name: Install dependencies
         run: |
