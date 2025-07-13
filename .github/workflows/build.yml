@@ -39,4 +39,4 @@ jobs: # 执行的工作
           password: ${{ secrets.PYPI_API_TOKEN }}
         
       - name: Run main.py
-        run: python main.py # 执行py文件    依据自己代码要运行的py情况而定
+        run: python source/main.py # 执行py文件    依据自己代码要运行的py情况而定
