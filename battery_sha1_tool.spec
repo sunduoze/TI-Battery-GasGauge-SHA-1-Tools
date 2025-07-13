@@ -3,7 +3,7 @@
 block_cipher = None
 
 a = Analysis(
-    ['source/battery_sha1_tool.py'],
+    ['source/main.py'],
     pathex=[],
     binaries=[],
     datas=[],
