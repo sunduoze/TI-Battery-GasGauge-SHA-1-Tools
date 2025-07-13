@@ -8,41 +8,51 @@ on:
 permissions:
   contents: read
   
-jobs: # 执行的工作
-  run_demo_actions:
-    runs-on: ubuntu-latest # 在最新版本的 Ubuntu 操作系统环境下运行
-    
-    steps: # 要执行的步骤
-      - name: Set envirorment var
-        env:
-          STEPENV: export DISPLAY=:0.0
-        run: echo "${STEPENV}"
-      
-      - name: Checkout code
-        uses: actions/checkout@v4  # 用于将github代码仓库的代码拷贝到工作目录中
- 
-      - name: Set up Python
-        uses: actions/setup-python@v3 # 用于设置 Python 环境，它允许你指定要在工作环境中使用的 Python 版本
-        with:
-          python-version: '3.11'  # 选择要用的Python版本
- 
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install flake8 pytest
-          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-      - name: Lint with flake8
-        run: |
-          # stop the build if there are Python syntax errors or undefined names
-          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-          # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
-          flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+jobs:
+  build:
+    runs-on: windows-latest
 
-      - name: Publish distribution 📦 to PyPI
-        if: startsWith(github.ref, 'refs/tags')
-        uses: pypa/gh-action-pypi-publish@master
-        with:
-          password: ${{ secrets.PYPI_API_TOKEN }}
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Build executable
+      run: |
+        pyinstaller battery_sha1_tool.spec
         
-      - name: Run main.py
-        run: python source/main.py # 执行py文件    依据自己代码要运行的py情况而定
+    - name: Create release zip
+      run: |
+        $version = $env:GITHUB_REF -replace 'refs/tags/v', ''
+        if (-not $version) { $version = "dev" }
+        $zipName = "BatterySHA1Tool_v$version.zip"
+        Compress-Archive -Path "dist\*" -DestinationPath $zipName
+        echo "ZIP_NAME=$zipName" >> $env:GITHUB_ENV
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: executable
+        path: ${{ env.ZIP_NAME }}
+
+    - name: Create release
+      if: startsWith(github.ref, 'refs/tags/')
+      id: create_release
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: ${{ github.ref }}
+        name: Release ${{ github.ref_name }}
+        draft: false
+        prerelease: false
+        files: ${{ env.ZIP_NAME }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
