@@ -11,7 +11,13 @@ permissions:
 jobs: # 执行的工作
   run_demo_actions:
     runs-on: ubuntu-latest # 在最新版本的 Ubuntu 操作系统环境下运行
+    
     steps: # 要执行的步骤
+      - name: Set envirorment var
+        env:
+          STEPENV: export DISPLAY=:0.0
+          run: echo "${STEPENV}"
+      
       - name: Checkout code
         uses: actions/checkout@v4  # 用于将github代码仓库的代码拷贝到工作目录中
  
