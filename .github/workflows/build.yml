@@ -16,7 +16,7 @@ jobs: # 执行的工作
       - name: Set envirorment var
         env:
           STEPENV: export DISPLAY=:0.0
-          run: echo "${STEPENV}"
+        run: echo "${STEPENV}"
       
       - name: Checkout code
         uses: actions/checkout@v4  # 用于将github代码仓库的代码拷贝到工作目录中
