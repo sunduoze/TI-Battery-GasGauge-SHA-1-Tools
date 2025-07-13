@@ -131,6 +131,9 @@ def copy_final_to_clipboard():
         status_bar.config(text="无内容可复制")
 
 
+if os.name != "nt" and os.getenv("GITHUB_ACTIONS"):
+    os.system('Xvfb :1 -screen 0 1600x1200x16  &')
+    os.environ["DISPLAY"] = ":1.0"
 # 创建主窗口
 root = tk.Tk()
 root.title("TI电池SHA1认证 - 双重SHA1计算工具---@Enzo Sun 20250712")
