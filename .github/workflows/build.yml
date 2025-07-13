@@ -7,34 +7,43 @@ on:
     branches: [ "main" ]
 permissions:
   contents: read
-  
+
 jobs:
   build:
     runs-on: windows-latest
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Set up Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
-        python-version: '3.10'
+        python-version: '3.11'
 
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -r requirements.txt
+        pip install pyinstaller
+        pip install pywin32
 
     - name: Build executable
       run: |
-        pyinstaller battery_sha1_tool.spec
-        
+        pyinstaller --onefile --noconsole --name BatterySHA1Tool battery_sha1_tool.py
+
     - name: Create release zip
       run: |
-        $version = $env:GITHUB_REF -replace 'refs/tags/v', ''
-        if (-not $version) { $version = "dev" }
-        $zipName = "BatterySHA1Tool_v$version.zip"
+        # 提取版本号或使用提交ID
+        if ($env:GITHUB_REF -like 'refs/tags/*') {
+            $version = $env:GITHUB_REF -replace 'refs/tags/v', ''
+        } else {
+            $version = $env:GITHUB_SHA.Substring(0,7)  # 使用前7位提交ID
+        }
+        
+        # 清理版本号中的无效字符
+        $clean_version = $version -replace '[\\/:*?"<>|]', '-'
+        
+        $zipName = "BatterySHA1Tool_v$clean_version.zip"
         Compress-Archive -Path "dist\*" -DestinationPath $zipName
         echo "ZIP_NAME=$zipName" >> $env:GITHUB_ENV
 
@@ -47,7 +56,7 @@ jobs:
     - name: Create release
       if: startsWith(github.ref, 'refs/tags/')
       id: create_release
-      uses: softprops/action-gh-release@v1
+      uses: softprops/action-gh-release@v2
       with:
         tag_name: ${{ github.ref }}
         name: Release ${{ github.ref_name }}
